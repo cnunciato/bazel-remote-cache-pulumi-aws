@@ -1,104 +1,73 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
-import * as awsx from "@pulumi/awsx";
 
-const config = new pulumi.Config();
-const port = config.requireNumber("containerPort");
-
-const lb = new awsx.lb.ApplicationLoadBalancer("lb", { 
-    listener: { 
-        port,
-    },
-    defaultTargetGroup: {
-        healthCheck: {
-            port: port.toString(),
-            path: "/",
-            matcher: "400",
-        }
-    }
-});
-
-const cluster = new aws.ecs.Cluster("cluster");
-
-const vpc = new awsx.ec2.DefaultVpc("default");
-
-// Create an S3 bucket for the Bazel remote cache
 const s3Bucket = new aws.s3.Bucket("bazel-remote-cache", {
-    forceDestroy: true, // Optional: Automatically delete bucket contents when destroying the stack
+    forceDestroy: true,
 });
 
-// Create an IAM role for the ECS task to access the S3 bucket
-const taskRole = new aws.iam.Role("ecsTaskExecutionRole", {
-    assumeRolePolicy: aws.iam.assumeRolePolicyForPrincipal({
-        Service: [
-            "ecs.amazonaws.com",
-            "ecs-tasks.amazonaws.com",
-        ],
-    }),
+const originAccessIdentity = new aws.cloudfront.OriginAccessIdentity("cloudfront", {
+    comment: pulumi.interpolate`OAI-${s3Bucket.bucketDomainName}`,
 });
 
-// Attach an inline policy to allow S3 access to the role
-new aws.iam.RolePolicy("s3AccessPolicy", {
-    role: taskRole.name,
-    policy: s3Bucket.arn.apply(bucketArn => JSON.stringify({
+const bucketPolicy = new aws.s3.BucketPolicy("bucketPolicy", {
+    bucket: s3Bucket.id,
+    policy: pulumi.jsonStringify({
         Version: "2012-10-17",
         Statement: [
             {
                 Effect: "Allow",
+                Principal: {
+                    AWS: originAccessIdentity.iamArn,
+                },
                 Action: ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
                 Resource: [
-                    bucketArn,
-                    `${bucketArn}/*`,
+                    s3Bucket.arn,
+                    pulumi.interpolate`${s3Bucket.arn}/*`,
                 ],
             },
         ],
-    })),
+    }),
 });
 
-const service = new awsx.ecs.FargateService("service", {
-    cluster: cluster.arn,
-    assignPublicIp: true,
-    desiredCount: 1,
-    taskDefinitionArgs: {
-        taskRole: {
-            roleArn: taskRole.arn
+const cloudFrontDistribution = new aws.cloudfront.Distribution("bazel-remote-cache-cdn", {
+    origins: [
+        {
+            originId: s3Bucket.arn,
+            domainName: s3Bucket.bucketRegionalDomainName,
+            s3OriginConfig: {
+                originAccessIdentity: originAccessIdentity.cloudfrontAccessIdentityPath,
+            },
         },
-        container: {
-            name: "bazel-cache",
-            image: "buchgr/bazel-remote-cache",
-            cpu: 128,
-            memory: 512,
-            essential: true,
-            portMappings: [
-                {
-                    containerPort: port,
-                    targetGroup: lb.defaultTargetGroup,
-                },
-            ],
-            environment: [
-                {
-                    name: "BAZEL_REMOTE_HTTP_ADDRESS",
-                    value: `0.0.0.0:${port}`,
-                },
-                {
-                    name: "BAZEL_REMOTE_MAX_SIZE",
-                    value: "2", // Max cache size in GB
-                },
-                {
-                    name: "BAZEL_REMOTE_S3_AUTH_METHOD",
-                    value: "iam_role",
-                },
-                {
-                    name: "BAZEL_REMOTE_S3_BUCKET",
-                    value: s3Bucket.bucket,
-                },
-                {
-                    name: "BAZEL_REMOTE_S3_ENDPOINT",
-                    value: `s3.${aws.config.region}.amazonaws.com`,
-                }
-            ],
+    ],
+    defaultCacheBehavior: {
+        targetOriginId: s3Bucket.arn,
+        viewerProtocolPolicy: "redirect-to-https",
+        allowedMethods: ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"],
+        cachedMethods: ["GET", "HEAD"],
+        forwardedValues: {
+            queryString: false,
+            cookies: {
+                forward: "none",
+            },
         },
+        // lambdaFunctionAssociations: [
+        //     {
+        //         eventType: "viewer-request",
+        //         lambdaArn: "<Your Lambda@Edge ARN>", // Replace with actual Lambda@Edge function ARN
+        //     },
+        // ],
+    },
+    enabled: true,
+    isIpv6Enabled: true,
+    // defaultRootObject: "",
+    restrictions: {
+        geoRestriction: {
+            restrictionType: "none",
+        },
+    },
+    viewerCertificate: {
+        cloudfrontDefaultCertificate: true,
     },
 });
 
-export const url = pulumi.interpolate`http://${lb.loadBalancer.dnsName}:${port}`;
+export const cacheURL = pulumi.interpolate`https://${cloudFrontDistribution.domainName}`;
