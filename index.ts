@@ -20,25 +20,49 @@ const lb = new awsx.lb.ApplicationLoadBalancer("lb", {
 
 const cluster = new aws.ecs.Cluster("cluster");
 
-// EFS File System
-const fileSystem = new aws.efs.FileSystem("efs");
-
 const vpc = new awsx.ec2.DefaultVpc("default");
 
-const mountTargets = vpc.publicSubnetIds.apply((subnetIds) =>
-    subnetIds.map((subnetId, index) => 
-        new aws.efs.MountTarget(`efs-mount-target-${index}`, {
-            fileSystemId: fileSystem.id,
-            subnetId: subnetId,
-        })
-    )
-);
+// Create an S3 bucket for the Bazel remote cache
+const s3Bucket = new aws.s3.Bucket("bazel-remote-cache", {
+    forceDestroy: true, // Optional: Automatically delete bucket contents when destroying the stack
+});
+
+// Create an IAM role for the ECS task to access the S3 bucket
+const taskRole = new aws.iam.Role("ecsTaskExecutionRole", {
+    assumeRolePolicy: aws.iam.assumeRolePolicyForPrincipal({
+        Service: [
+            "ecs.amazonaws.com",
+            "ecs-tasks.amazonaws.com",
+        ],
+    }),
+});
+
+// Attach an inline policy to allow S3 access to the role
+new aws.iam.RolePolicy("s3AccessPolicy", {
+    role: taskRole.name,
+    policy: s3Bucket.arn.apply(bucketArn => JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [
+            {
+                Effect: "Allow",
+                Action: ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
+                Resource: [
+                    bucketArn,
+                    `${bucketArn}/*`,
+                ],
+            },
+        ],
+    })),
+});
 
 const service = new awsx.ecs.FargateService("service", {
     cluster: cluster.arn,
     assignPublicIp: true,
     desiredCount: 1,
     taskDefinitionArgs: {
+        taskRole: {
+            roleArn: taskRole.arn
+        },
         container: {
             name: "bazel-cache",
             image: "buchgr/bazel-remote-cache",
@@ -57,29 +81,23 @@ const service = new awsx.ecs.FargateService("service", {
                     value: `0.0.0.0:${port}`,
                 },
                 {
-                    name: "BAZEL_REMOTE_DIR",
-                    value: "/data",
-                },
-                {
                     name: "BAZEL_REMOTE_MAX_SIZE",
-                    value: "2",
+                    value: "2", // Max cache size in GB
                 },
-            ],
-            mountPoints: [
                 {
-                    containerPath: "/data",
-                    sourceVolume: "efs-data",
+                    name: "BAZEL_REMOTE_S3_AUTH_METHOD",
+                    value: "iam_role",
                 },
+                {
+                    name: "BAZEL_REMOTE_S3_BUCKET",
+                    value: s3Bucket.bucket,
+                },
+                {
+                    name: "BAZEL_REMOTE_S3_ENDPOINT",
+                    value: `s3.${aws.config.region}.amazonaws.com`,
+                }
             ],
         },
-        volumes: [
-            {
-                name: "efs-data",
-                efsVolumeConfiguration: {
-                    fileSystemId: fileSystem.id,
-                },
-            },
-        ],
     },
 });
 
