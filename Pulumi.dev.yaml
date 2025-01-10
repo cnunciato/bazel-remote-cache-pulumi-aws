@@ -1,0 +1,5 @@
+config:
+  aws:region: us-west-2
+  bazel-remote-cache-pulumi-aws:containerPort: "8080"
+  bazel-remote-cache-pulumi-aws:cpu: "512"
+  bazel-remote-cache-pulumi-aws:memory: "128"
