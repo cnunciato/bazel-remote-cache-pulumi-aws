@@ -30,9 +30,10 @@ const rolePolicyAttachment = new aws.iam.RolePolicyAttachment(
     },
 );
 
-// Export a function defining the edge Lambda. We do this because the username
-// and password are exposed as Pulumi outputs, and those outputs must be
-// resolved as plain strings before they can be serialized into the Lambda
+// Export a function defining the edge Lambda. We do it this way (i.e., as a
+// function with .apply(), as opposed to just exposing the resource) because the
+// username and password are exposed as Pulumi outputs, and those outputs must
+// be resolved as plain strings before they can be serialized into the Lambda
 // function body.
 export const getAuthLambda = (
     user: pulumi.Output<string>,

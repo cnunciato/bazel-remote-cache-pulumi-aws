@@ -3,16 +3,17 @@ import * as aws from "@pulumi/aws";
 import * as lambdas from "./lambda";
 
 // Fetch the basic-auth username and password as secrets from Pulumi config.
+// These are optional.
 const config = new pulumi.Config();
-const username = config.requireSecret("username");
-const password = config.requireSecret("password");
+const username = config.getSecret("username");
+const password = config.getSecret("password");
 
 // Provision an S3 bucket to hold the Bazel cache.
 const bucket = new aws.s3.Bucket("bazel-remote-cache", {
     forceDestroy: true,
 });
 
-// Provision an origin access identity to restrict access to the bucket.
+// Provision an origin access identity to grant CloudFront access to the bucket.
 const oid = new aws.cloudfront.OriginAccessIdentity("cloudfront-oai", {
     comment: pulumi.interpolate`oai-${bucket.bucketDomainName}`,
 });
