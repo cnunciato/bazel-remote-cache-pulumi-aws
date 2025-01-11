@@ -1,11 +1,8 @@
 name: ${PROJECT}
 description: ${DESCRIPTION}
-runtime:
-  name: nodejs
-  options:
-    packagemanager: npm
+runtime: nodejs
 template:
-  description: Deploys a Bazel remote cache powered by Amazon S3 and CloudFront.
+  description: A Bazel remote cache powered by Amazon S3 and CloudFront.
   config:
     username:
       description: The HTTP basic-auth username (optional)
