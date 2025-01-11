@@ -36,7 +36,7 @@ pulumi stack output url --show-secrets
 https://someuser:abc123@somerandomhost.cloudfront.net
 ```
 
-Finally, use the cache with your Bazel-managed project, pass the `url` with [`--remote_cache`](https://bazel.build/remote/caching#read-write-remote-cache):
+Finally, to use the cache with your Bazel-managed project, pass the `url` with [`--remote_cache`](https://bazel.build/remote/caching#read-write-remote-cache) (or set it in your local `.bazelrc`):
 
 ```bash
 bazel test //... --remote_cache $(pulumi stack output url --show-secrets --stack org/project/stack)
