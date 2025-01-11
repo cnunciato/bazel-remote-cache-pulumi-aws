@@ -52,7 +52,7 @@ Enjoy! :rocket:
 
 ## Configuration settings
 
-| Key        | Description                                        | Type     |
-| ---------- | -------------------------------------------------- | -------- |
-| `username` | The username to use for HTTP basic auth (optional) | `string` |
-| `password` | The password to use for HTTP basic auth (optional) | `string` |
+| Key        | Description                                 | Type     |
+| ---------- | ------------------------------------------- | -------- |
+| `username` | The username for HTTP basic auth (optional) | `string` |
+| `password` | The password for HTTP basic auth (optional) | `string` |
