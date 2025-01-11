@@ -10,11 +10,11 @@ const bucket = new aws.s3.Bucket("bazel-remote-cache", {
     forceDestroy: true,
 });
 
-const oid = new aws.cloudfront.OriginAccessIdentity("cloudfront-oid", {
+const oid = new aws.cloudfront.OriginAccessIdentity("cloudfront-oai", {
     comment: pulumi.interpolate`oai-${bucket.bucketDomainName}`,
 });
 
-const bucketPolicy = new aws.s3.BucketPolicy("bucketPolicy", {
+const bucketPolicy = new aws.s3.BucketPolicy("bucket-policy", {
     bucket: bucket.id,
     policy: pulumi.jsonStringify({
         Version: "2012-10-17",
