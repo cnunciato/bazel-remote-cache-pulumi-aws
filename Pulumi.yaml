@@ -1,5 +1,5 @@
-name: bazel-remote-cache-pulumi-aws
-description: Deploys a Bazel remote cache powered by Amazon S3 and CloudFront.
+name: ${PROJECT}
+description: ${DESCRIPTION}
 runtime:
   name: nodejs
   options:
