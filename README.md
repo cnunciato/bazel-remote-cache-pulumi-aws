@@ -42,7 +42,13 @@ Finally, use the cache with your Bazel-managed project, pass the `url` with [`--
 bazel test //... --remote_cache $(pulumi stack output url --show-secrets --stack org/project/stack)
 ```
 
-Enjoy!
+To tear everything down (including all S3 data):
+
+```bash
+pulumi destroy
+```
+
+Enjoy! :rocket:
 
 ## Configuration settings
 
