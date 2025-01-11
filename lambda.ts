@@ -69,6 +69,7 @@ export const getAuthLambda = (
                 },
             },
             {
+                // Edge Lambdas must be provisioned in us-east-1.
                 provider: new aws.Provider("us-east-1", {
                     region: "us-east-1",
                 }),
