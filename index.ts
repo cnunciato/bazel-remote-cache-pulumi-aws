@@ -88,4 +88,7 @@ const cdn = new aws.cloudfront.Distribution("cdn", {
     },
 });
 
-export const url = pulumi.interpolate`https://${username}:${password}@${cdn.domainName}`;
+export const url =
+    username && password
+        ? pulumi.interpolate`https://${cdn.domainName}`
+        : pulumi.interpolate`https://${username}:${password}@${cdn.domainName}`;

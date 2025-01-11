@@ -1,14 +1,16 @@
 # bazel-remote-cache-pulumi-aws
 
-An [Pulumi](https://www.pulumi.com/docs/) example and template that deploys a [Bazel remote cache](https://bazel.build/remote/caching) powered by Amazon S3 and CloudFront. Optionally supports HTTP basic authentication.
+A [Pulumi](https://www.pulumi.com/docs/) template that deploys a [Bazel remote cache](https://bazel.build/remote/caching) powered by Amazon S3 and CloudFront. Optionally supports HTTP basic authentication.
 
 ## Usage
 
-Create a new project with `pulumi new` by pointing to this reposiroty, then follow the prompts to set an optional HTTP basic-auth username and password. (If you choose not to set either one, the cache will be provisioned without authentication.)
+Create a new project with `pulumi new` by pointing to this repository, then follow the prompts. If you want the endpoint to be protected with HTTP basic auth, set a username and password; otherwise, you can leave them blank to leave the endpoint unprotected.
 
 ```bash
 pulumi new https://github.com/cnunciato/bazel-remote-cache-pulumi-aws
 ```
+
+Run `pulumi up` to deploy:
 
 ```plain
 pulumi up
@@ -18,21 +20,23 @@ Outputs:
     url: [secret]
 ```
 
-You can obtain the generated CloudFront URL with `pulumi stack output`:
+To obtain the computed CloudFront URL, use `pulumi stack output`:
 
 ```bash
 pulumi stack output url
+
 https://somerandomhost.cloudfront.net
 ```
 
-For authenticated services, you'll need to pass `--show-secrets`:
+For protected instances, pass `--show-secrets`:
 
 ```bash
 pulumi stack output url --show-secrets
+
 https://someuser:abc123@somerandomhost.cloudfront.net
 ```
 
-To use the cache with your Bazel-managed project, pass the `url` with `--remote_cache`:
+Finally, use the cache with your Bazel-managed project, pass the `url` with [`--remote_cache`](https://bazel.build/remote/caching#read-write-remote-cache):
 
 ```bash
 bazel test //... --remote_cache $(pulumi stack output url --show-secrets --stack org/project/stack)
