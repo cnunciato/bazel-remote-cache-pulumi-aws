@@ -1,48 +1,58 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
+import * as lambdas from "./lambda";
 
-const s3Bucket = new aws.s3.Bucket("bazel-remote-cache", {
+const config = new pulumi.Config();
+const username = config.requireSecret("username");
+const password = config.requireSecret("password");
+
+const bucket = new aws.s3.Bucket("bazel-remote-cache", {
     forceDestroy: true,
 });
 
-const originAccessIdentity = new aws.cloudfront.OriginAccessIdentity("cloudfront", {
-    comment: pulumi.interpolate`OAI-${s3Bucket.bucketDomainName}`,
+const oid = new aws.cloudfront.OriginAccessIdentity("cloudfront-oid", {
+    comment: pulumi.interpolate`oai-${bucket.bucketDomainName}`,
 });
 
 const bucketPolicy = new aws.s3.BucketPolicy("bucketPolicy", {
-    bucket: s3Bucket.id,
+    bucket: bucket.id,
     policy: pulumi.jsonStringify({
         Version: "2012-10-17",
         Statement: [
             {
                 Effect: "Allow",
                 Principal: {
-                    AWS: originAccessIdentity.iamArn,
+                    AWS: oid.iamArn,
                 },
                 Action: ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
-                Resource: [
-                    s3Bucket.arn,
-                    pulumi.interpolate`${s3Bucket.arn}/*`,
-                ],
+                Resource: [bucket.arn, pulumi.interpolate`${bucket.arn}/*`],
             },
         ],
     }),
 });
 
-const cloudFrontDistribution = new aws.cloudfront.Distribution("bazel-remote-cache-cdn", {
+const cdn = new aws.cloudfront.Distribution("cdn", {
     origins: [
         {
-            originId: s3Bucket.arn,
-            domainName: s3Bucket.bucketRegionalDomainName,
+            originId: bucket.arn,
+            domainName: bucket.bucketRegionalDomainName,
             s3OriginConfig: {
-                originAccessIdentity: originAccessIdentity.cloudfrontAccessIdentityPath,
+                originAccessIdentity: oid.cloudfrontAccessIdentityPath,
             },
         },
     ],
     defaultCacheBehavior: {
-        targetOriginId: s3Bucket.arn,
+        targetOriginId: bucket.arn,
         viewerProtocolPolicy: "redirect-to-https",
-        allowedMethods: ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"],
+        allowedMethods: [
+            "GET",
+            "HEAD",
+            "OPTIONS",
+            "PUT",
+            "POST",
+            "PATCH",
+            "DELETE",
+        ],
         cachedMethods: ["GET", "HEAD"],
         forwardedValues: {
             queryString: false,
@@ -50,16 +60,15 @@ const cloudFrontDistribution = new aws.cloudfront.Distribution("bazel-remote-cac
                 forward: "none",
             },
         },
-        // lambdaFunctionAssociations: [
-        //     {
-        //         eventType: "viewer-request",
-        //         lambdaArn: "<Your Lambda@Edge ARN>", // Replace with actual Lambda@Edge function ARN
-        //     },
-        // ],
+        lambdaFunctionAssociations: [
+            {
+                eventType: "viewer-request",
+                lambdaArn: pulumi.interpolate`${lambdas.getAuthLambda(username, password).qualifiedArn}`,
+            },
+        ],
     },
     enabled: true,
     isIpv6Enabled: true,
-    // defaultRootObject: "",
     restrictions: {
         geoRestriction: {
             restrictionType: "none",
@@ -70,4 +79,4 @@ const cloudFrontDistribution = new aws.cloudfront.Distribution("bazel-remote-cac
     },
 });
 
-export const cacheURL = pulumi.interpolate`https://${cloudFrontDistribution.domainName}`;
+export const cacheURL = pulumi.interpolate`https://${username}:${password}@${cdn.domainName}`;

@@ -3,3 +3,7 @@ config:
   bazel-remote-cache-pulumi-aws:containerPort: "8080"
   bazel-remote-cache-pulumi-aws:cpu: "512"
   bazel-remote-cache-pulumi-aws:memory: "128"
+  bazel-remote-cache-pulumi-aws:username:
+    secure: AAABALjiCbAPM6EAczdJcP8ANwDyMbdcT0opOcxXmHPrB3Pc7A==
+  bazel-remote-cache-pulumi-aws:password:
+    secure: AAABAJuHs0vx+3/yIPv/8Q7hpOKmw5xYl8XSDqyl25Qz2jFydaERXBWhpSsHQ/c=
