@@ -2,18 +2,22 @@ import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 import * as lambdas from "./lambda";
 
+// Fetch the basic-auth username and password as secrets from Pulumi config.
 const config = new pulumi.Config();
 const username = config.requireSecret("username");
 const password = config.requireSecret("password");
 
+// Provision an S3 bucket to hold the Bazel cache.
 const bucket = new aws.s3.Bucket("bazel-remote-cache", {
     forceDestroy: true,
 });
 
+// Provision an origin access identity to restrict access to the bucket.
 const oid = new aws.cloudfront.OriginAccessIdentity("cloudfront-oai", {
     comment: pulumi.interpolate`oai-${bucket.bucketDomainName}`,
 });
 
+// Grant read, write, and list permissions to CloudFront for the bucket and its objects.
 const bucketPolicy = new aws.s3.BucketPolicy("bucket-policy", {
     bucket: bucket.id,
     policy: pulumi.jsonStringify({
@@ -31,6 +35,7 @@ const bucketPolicy = new aws.s3.BucketPolicy("bucket-policy", {
     }),
 });
 
+// Provision a CloudFront distribution and protect it with basic auth.
 const cdn = new aws.cloudfront.Distribution("cdn", {
     origins: [
         {
@@ -60,12 +65,16 @@ const cdn = new aws.cloudfront.Distribution("cdn", {
                 forward: "none",
             },
         },
-        lambdaFunctionAssociations: [
-            {
-                eventType: "viewer-request",
-                lambdaArn: pulumi.interpolate`${lambdas.getAuthLambda(username, password).qualifiedArn}`,
-            },
-        ],
+        // Only provision the edge Lambda if a username and password were provided.
+        lambdaFunctionAssociations:
+            username && password
+                ? [
+                      {
+                          eventType: "viewer-request",
+                          lambdaArn: pulumi.interpolate`${lambdas.getAuthLambda(username, password).qualifiedArn}`,
+                      },
+                  ]
+                : undefined,
     },
     enabled: true,
     isIpv6Enabled: true,
@@ -79,4 +88,4 @@ const cdn = new aws.cloudfront.Distribution("cdn", {
     },
 });
 
-export const cacheURL = pulumi.interpolate`https://${username}:${password}@${cdn.domainName}`;
+export const url = pulumi.interpolate`https://${username}:${password}@${cdn.domainName}`;

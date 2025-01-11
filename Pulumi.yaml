@@ -1,10 +1,15 @@
 name: bazel-remote-cache-pulumi-aws
-description: A TypeScript program to deploy a containerized service on AWS
+description: Deploys a Bazel remote cache powered by Amazon S3 and CloudFront.
 runtime:
   name: nodejs
   options:
     packagemanager: npm
-config:
-  pulumi:tags:
-    value:
-      pulumi:template: container-aws-typescript
+template:
+  description: Deploys a Bazel remote cache powered by Amazon S3 and CloudFront.
+  config:
+    username:
+      description: The HTTP basic-auth username (optional)
+      secret: true
+    password:
+      description: The HTTP basic-auth password (optional)
+      secret: true
