@@ -5,11 +5,5 @@
     "files.trimFinalNewlines": true,
     "files.insertFinalNewline": true,
     "prettier.configPath": "./.prettierrc",
-    "prettier.documentSelectors": ["**/*.{ts,js,cjs,mjs,json,md,svg}"],
-    "python.analysis.extraPaths": ["./sdk/python/src"],
-    "[ruby]": {
-        "editor.defaultFormatter": "rubocop.vscode-rubocop"
-    },
-    "rubocop.mode": "enableViaGemfileOrMissingGemfile",
-    "rubocop.autocorrect": true
+    "prettier.documentSelectors": ["**/*.{ts,js,cjs,mjs,json,md}"]
 }
