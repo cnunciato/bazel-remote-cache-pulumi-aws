@@ -42,4 +42,4 @@ Enjoy!
 | Key        | Description                                        | Type     |
 | ---------- | -------------------------------------------------- | -------- |
 | `username` | The username to use for HTTP basic auth (optional) | `string` |
-| `password` | The username to use for HTTP basic auth (optional) | `string` |
+| `password` | The password to use for HTTP basic auth (optional) | `string` |
