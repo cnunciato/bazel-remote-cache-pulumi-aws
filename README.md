@@ -6,8 +6,11 @@ An [Pulumi](https://www.pulumi.com/docs/) example and template that deploys a [B
 
 Create a new project with `pulumi new` by pointing to this reposiroty, then follow the prompts to set an optional HTTP basic-auth username and password. (If you choose not to set either one, the cache will be provisioned without authentication.)
 
-```
+```bash
 pulumi new https://github.com/cnunciato/bazel-remote-cache-pulumi-aws
+```
+
+```plain
 pulumi up
 
 ...
