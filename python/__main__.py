@@ -90,6 +90,10 @@ cdn = aws.cloudfront.Distribution(
             "s3OriginConfig": {
                 "originAccessIdentity": oai.cloudfront_access_identity_path,
             },
+            # In Python, we do this a little differently, as we can't close over
+            # variables the way we can with TypeScript. Instead, we supply the
+            # expected creds as headers passed from CloudFront to the origin so
+            # the Lambda can see them.
             "custom_headers": (
                 [
                     {
