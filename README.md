@@ -60,7 +60,7 @@ Enjoy! :rocket:
 
 ## Configuration settings
 
-| Key        | Description                                 | Type     |
-| ---------- | ------------------------------------------- | -------- |
-| `username` | The username for HTTP basic auth (optional) | `string` |
-| `password` | The password for HTTP basic auth (optional) | `string` |
+| Key        | Description                                 | Type              |
+| ---------- | ------------------------------------------- | ----------------- |
+| `username` | The username for HTTP basic auth (optional) | `string` (secret) |
+| `password` | The password for HTTP basic auth (optional) | `string` (secret) |
