@@ -64,13 +64,13 @@ To tear everything down (including all S3 data):
 pulumi destroy
 ```
 
-Note that when you do this, you'll likely get a complaint from CloudFront about the Lambda not being deletable:
+Note that when you do this, CloudFront will likely complain about the Lambda not being deletable:
 
 ```plain
 InvalidParameterValueException: Lambda was unable to delete [...] because it is a replicated function.
 ```
 
-Don't stress, though. This is a quirk of Lambda@Edge and the AWS provider. Just wait a few minutes and run the destroy again and it'll be removed from your Pulumi stack. (It'll be removed from AWS either way.)
+Don't worry: This is a known quirk of Lambda@Edge. Just wait a few minutes and run the destroy again to remove it from your Pulumi stack. (It'll be removed from AWS either way.)
 
 Enjoy! :rocket:
 
