@@ -9,13 +9,13 @@ Create a new project with `pulumi new` by pointing to this repository, then foll
 ### Node.js (TypeScript, JavaScript)
 
 ```bash
-pulumi new https://github.com/cnunciato/bazel-remote-cache-pulumi-aws/tree/main/typescript
+pulumi new https://github.com/cnunciato/bazel-remote-cache-pulumi-aws/typescript
 ```
 
 ### Python
 
 ```bash
-pulumi new https://github.com/cnunciato/bazel-remote-cache-pulumi-aws/tree/main/python
+pulumi new https://github.com/cnunciato/bazel-remote-cache-pulumi-aws/python
 ```
 
 Run `pulumi up` to deploy:
