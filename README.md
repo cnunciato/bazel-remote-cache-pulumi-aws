@@ -6,17 +6,19 @@ A [Pulumi](https://www.pulumi.com/docs/) template that deploys a [Bazel remote c
 
 Create a new project with `pulumi new` by pointing to this repository, then follow the prompts. If you want the endpoint to be protected with HTTP basic auth, set a username and password; otherwise, you can leave them blank to leave the endpoint unprotected.
 
-### Node.js (TypeScript, JavaScript)
+For Node.js:
 
 ```bash
 pulumi new https://github.com/cnunciato/bazel-remote-cache-pulumi-aws/typescript
 ```
 
-### Python
+For Python:
 
 ```bash
 pulumi new https://github.com/cnunciato/bazel-remote-cache-pulumi-aws/python
 ```
+
+### Deploy
 
 Run `pulumi up` to deploy:
 
@@ -27,6 +29,8 @@ pulumi up
 Outputs:
     url: [secret]
 ```
+
+### Get the cache URL
 
 To obtain the computed CloudFront URL, use `pulumi stack output`:
 
@@ -44,11 +48,15 @@ pulumi stack output url --show-secrets
 https://someuser:abc123@somerandomhost.cloudfront.net
 ```
 
+### Use the cache URL with Bazel
+
 Finally, to use the cache with your Bazel-managed project, pass the `url` with [`--remote_cache`](https://bazel.build/remote/caching#read-write-remote-cache) (or set it in your local `.bazelrc`):
 
 ```bash
 bazel test //... --remote_cache $(pulumi stack output url --show-secrets --stack org/project/stack)
 ```
+
+### Clean up
 
 To tear everything down (including all S3 data):
 
