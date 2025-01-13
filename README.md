@@ -1,6 +1,6 @@
 # bazel-remote-cache-pulumi-aws
 
-A [Pulumi](https://www.pulumi.com/docs/) template that deploys a [Bazel remote cache](https://bazel.build/remote/caching) powered by Amazon S3 and CloudFront. Optionally supports HTTP basic authentication, and available for both Node.js (TypeScript, JavaScript) and Python.
+A [Pulumi](https://www.pulumi.com/docs/) template that deploys a [Bazel remote cache](https://bazel.build/remote/caching) powered by Amazon S3 and CloudFront. Optionally supports HTTP basic auth, and is available for both Node.js (TypeScript, JavaScript) and Python.
 
 ## Usage
 
