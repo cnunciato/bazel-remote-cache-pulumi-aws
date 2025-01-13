@@ -42,11 +42,6 @@ export const getAuthLambda = (user: pulumi.Output<string>, pass: pulumi.Output<s
                 timeout: 5,
                 callback: async (event: lambda.CloudFrontRequestEvent) => {
                     const request = event.Records[0].cf.request;
-
-                    const customHeaders = request.origin?.s3?.customHeaders!;
-                    const configuredUsername = customHeaders["x-basic-auth-username"][0].value;
-                    const configuredPassword = customHeaders["x-basic-auth-password"][0].value;
-
                     const headers = request.headers;
                     const auth = headers.authorization;
 
@@ -58,7 +53,7 @@ export const getAuthLambda = (user: pulumi.Output<string>, pass: pulumi.Output<s
                         const username = decoded[0];
                         const password = decoded[1];
 
-                        if (username === configuredUsername && password === configuredPassword) {
+                        if (username === u && password === p) {
                             return request;
                         }
                     }
