@@ -4,9 +4,14 @@ runtime: nodejs
 template:
   description: A Bazel remote cache powered by Amazon S3 and CloudFront.
   config:
+    aws:region:
+      description: The AWS region to deploy into
+      default: us-east-1
     username:
       description: The HTTP basic-auth username (optional)
       secret: true
+      default:
     password:
       description: The HTTP basic-auth password (optional)
       secret: true
+      default:

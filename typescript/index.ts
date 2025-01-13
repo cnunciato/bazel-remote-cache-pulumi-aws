@@ -14,7 +14,7 @@ const bucket = new aws.s3.Bucket("bazel-remote-cache", {
 });
 
 // Provision an origin access identity to grant CloudFront access to the bucket.
-const oid = new aws.cloudfront.OriginAccessIdentity("cloudfront-oai", {
+const oai = new aws.cloudfront.OriginAccessIdentity("cloudfront-oai", {
     comment: pulumi.interpolate`oai-${bucket.bucketDomainName}`,
 });
 
@@ -27,7 +27,7 @@ const bucketPolicy = new aws.s3.BucketPolicy("bucket-policy", {
             {
                 Effect: "Allow",
                 Principal: {
-                    AWS: oid.iamArn,
+                    AWS: oai.iamArn,
                 },
                 Action: ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
                 Resource: [bucket.arn, pulumi.interpolate`${bucket.arn}/*`],
@@ -43,7 +43,7 @@ const cdn = new aws.cloudfront.Distribution("cdn", {
             originId: bucket.arn,
             domainName: bucket.bucketRegionalDomainName,
             s3OriginConfig: {
-                originAccessIdentity: oid.cloudfrontAccessIdentityPath,
+                originAccessIdentity: oai.cloudfrontAccessIdentityPath,
             },
         },
     ],

@@ -35,6 +35,9 @@ const rolePolicyAttachment = new aws.iam.RolePolicyAttachment(
 // username and password are exposed as Pulumi outputs, and those outputs must
 // be resolved as plain strings before they can be serialized into the Lambda
 // function body.
+//
+// TODO: Update this to do what the Python version does, and just use custom
+// origin headers.
 export const getAuthLambda = (
     user: pulumi.Output<string>,
     pass: pulumi.Output<string>,
